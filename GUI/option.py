@@ -168,12 +168,20 @@ class OptionDialog(StdDialog):
             DownloadInfo.download_chapter_index = list(range(BookInfo.chapter_count))
 
         elif self.select_rad.GetValue():
+            if self.group_list.GetCheckedItems() == ():
+                self.show_msg("警告", "未选择下载章节", wx.ICON_WARNING)
+                return
+
             self.process_select_group_list()
         
         else:
             start_index = self.range_start_box.GetValue() - 1
             end_index = self.range_end_box.GetValue()
 
+            if start_index > end_index:
+                self.show_msg("警告", "指定范围无效", wx.ICON_WARNING)
+                return
+            
             DownloadInfo.download_chapter_index = list(range(start_index, end_index))
         
         self.Hide()

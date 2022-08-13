@@ -13,6 +13,8 @@ class DownloadWindow(wx.Dialog):
 
         self.init_UI()
 
+        self.Bind_EVT()
+
         self.CenterOnParent()
 
         Thread(target = self.start_download).start()
@@ -26,20 +28,37 @@ class DownloadWindow(wx.Dialog):
 
         self.progress = wx.Gauge(self.panel, -1, size = self.FromDIP((300, 25)), style = wx.GA_SMOOTH)
 
+        action_hbox = wx.BoxSizer(wx.HORIZONTAL)
+
+        self.minimize_btn = wx.Button(self.panel, -1, "最小化", size = self.FromDIP((80, 28)))
+        self.cancel_btn = wx.Button(self.panel, -1, "取消", size = self.FromDIP((80, 28)))
+
+        action_hbox.Add(self.minimize_btn, 0, wx.ALL, 10)
+        action_hbox.AddStretchSpacer()
+        action_hbox.Add(self.cancel_btn, 0, wx.ALL, 10)
+
         window_vbox.Add(self.progress_lab, 0, wx.EXPAND | wx.ALL, 10)
         window_vbox.Add(self.progress, 0, wx.EXPAND | wx.ALL & (~wx.TOP), 10)
+        window_vbox.Add(action_hbox, 0, wx.EXPAND)
 
         self.panel.SetSizer(window_vbox)
 
         window_vbox.Fit(self)
     
+    def Bind_EVT(self):
+        self.minimize_btn.Bind(wx.EVT_BUTTON, self.minimize_btn_EVT)
+
+        self.cancel_btn.Bind(wx.EVT_BUTTON, self.cancel_btn_EVT)
+
     def start_download(self):
         self.progress.Pulse()
 
-        self.threadpool = ThreadPoolExecutor(max_workers = 50)
+        self.threadpool = ThreadPoolExecutor(max_workers = Config.thread_number)
 
         DownloadInfo.download_count = len(DownloadInfo.download_chapter_index)
         DownloadInfo.complete_count = 0
+        DownloadInfo.error_count = 0
+        
         task_list = []
 
         for index in DownloadInfo.download_chapter_index:
@@ -74,10 +93,16 @@ class DownloadWindow(wx.Dialog):
         self.Hide()
         self.RequestUserAttention(wx.USER_ATTENTION_INFO)
 
-        dlg = wx.MessageDialog(self.Parent, '下载完成\n\n小说《{}》下载完成'.format(BookInfo.name), "提示", style = wx.ICON_INFORMATION | wx.YES_NO)
+        if DownloadInfo.error_count != 0:
+            error = "\n\n其中有 {} 个章节下载失败".format(DownloadInfo.error_count)
+        else:
+            error = ""
+
+        dlg = wx.MessageDialog(self.Parent, '下载完成\n\n小说《{}》下载完成'.format(BookInfo.name) + error, "提示", style = wx.ICON_INFORMATION | wx.YES_NO)
         dlg.SetYesNoLabels("打开所在位置", "确定")
 
-        dlg.ShowModal()
+        if dlg.ShowModal() == wx.ID_YES:
+            os.startfile(Config.download_path)
 
         self.Destroy()
 
@@ -104,5 +129,16 @@ class DownloadWindow(wx.Dialog):
         DownloadInfo.file.close()
         DownloadInfo.file = StringIO()
     
+    def minimize_btn_EVT(self, event):
+        self.Parent.Iconize()
+
+    def cancel_btn_EVT(self, event):
+        dlg = wx.MessageDialog(self, "确认取消下载\n\n是否取消下载小说", "警告", style = wx.ICON_WARNING | wx.YES_NO)
+
+        if dlg.ShowModal() == wx.ID_YES:
+            self.threadpool.shutdown(wait = False, cancel_futures = True)
+
+            self.Hide()
+
     def on_error(self, e):
-        print("error")
+        DownloadInfo.error_count += 1

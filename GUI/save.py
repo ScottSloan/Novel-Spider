@@ -24,7 +24,7 @@ class SaveDialog(StdDialog):
 
         filename_hbox = wx.BoxSizer(wx.HORIZONTAL)
 
-        filename_lab = wx.StaticText(self.panel, -1, "文件名   ")
+        filename_lab = wx.StaticText(self.panel, -1, "文件名称")
         self.filename_box = wx.TextCtrl(self.panel, -1, size = self.FromDIP((200, 25)))
 
         filename_hbox.Add(filename_lab, 0, wx.ALL | wx.ALIGN_CENTER, 10)
@@ -75,6 +75,14 @@ class SaveDialog(StdDialog):
         self.add_chk.SetValue(Config.add_chapter_title)
 
     def start_btn_EVT(self, event):
+        if self.filename_box.GetValue() == "":
+            self.show_msg("警告", "请输入文件名称", wx.ICON_WARNING)
+            return
+
+        if self.filepath_box.GetValue() == "":
+            self.show_msg("警告", "输入路径无效", wx.ICON_WARNING)
+            return
+            
         DownloadInfo.filepath = os.path.join(self.filepath_box.GetValue(), self.filename_box.GetValue()) + self.filetype_select.GetStringSelection()
         
         self.Hide()

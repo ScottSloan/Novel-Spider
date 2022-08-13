@@ -5,6 +5,8 @@ from urllib.parse import quote
 from io import StringIO
 from math import ceil
 
+from .config import Config
+
 class Site:
     id = 0
     name = site_url = search_url = ""
@@ -42,19 +44,26 @@ class DownloadInfo:
 
     download_count = complete_count = 0
 
-def request_get(url: str, on_error):    
-    proxy = {"http": "http://111.42.175.236:9091"}
+    error_count = 0
     
-    try:
-        req = requests.get(url, timeout = 5, proxies = proxy)
-        req.encoding = "utf-8"
+def request_get(url: str, on_error):
+    header = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.81 Safari/537.36 Edg/104.0.1293.47"}       
+    
+    for i in range(Config.request_retry_times):
+        try:
+            req = requests.get(url, timeout = Config.request_timeout, headers = header)
+            req.encoding = "utf-8"
 
-        return req.text
+            return req.text
 
-    except requests.RequestException as e:
-        on_error(str(e))
+        except requests.RequestException as e:
+            if i == Config.request_retry_times - 1:
+                on_error(str(e))
 
-        return e
+                return e
+            
+            else:
+                continue
 
 def search_book(keywords: str, on_error):
     url = Site.search_url + quote(keywords, encoding = "utf-8")

@@ -30,7 +30,7 @@ class DetailPage(StdPage):
         action_hbox = wx.BoxSizer(wx.HORIZONTAL)
         
         self.back_btn = wx.Button(self, -1, "返回搜索页", size = self.FromDIP((90, 28)))
-        self.download_btn = wx.Button(self, -1, "爬取小说", size = self.FromDIP((90, 28)))
+        self.download_btn = wx.Button(self, -1, "下载小说", size = self.FromDIP((90, 28)))
 
         action_hbox.Add(self.back_btn)
         action_hbox.AddStretchSpacer()
