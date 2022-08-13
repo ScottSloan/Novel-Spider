@@ -16,9 +16,10 @@ pip install -r requirements.txt
 ```
 # 功能
 * 支持搜索、预览、下载小说
-* 可手动选择要下载的章节
+* 可手动选择需要下载的章节
 * 使用线程池，大幅提升下载速度
 
 # 界面截图
 ![book_main.png](https://s2.loli.net/2022/08/13/L7RCApG8YwPNEmX.png)
 ![book_detail.png](https://s2.loli.net/2022/08/13/nvTdtY9GxamuCHU.png)
+![book_option.png](https://s2.loli.net/2022/08/13/BRjcQfy2nJKVuz6.png)
